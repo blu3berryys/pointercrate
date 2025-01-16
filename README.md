@@ -1,15 +1,21 @@
 # Pointercrate ![build](https://github.com/stadust/pointercrate/actions/workflows/test.yml/badge.svg) [![codecov](https://codecov.io/gh/stadust/pointercrate/branch/master/graph/badge.svg?token=C7B5LU2IF5)](https://codecov.io/gh/stadust/pointercrate)
 
+As of March 2nd, 2019, this is the official repository for **Pointercrate**. It contains the core backend components of [pointercrate.com](https://pointercrate.com/), specifically the code for the demonlist and user area pages. It does **not** include the code for the home page, API documentation, or demonlist guidelines.
 
-As of March 2nd 2019 this is the official repository for pointercrate. It contains the main parts of the backend code of [pointercrate.com](https://pointercrate.com). Specifically, it contains all the code for the demonlist and user area pages seen on pointercrate, but does not contain the code for the home page, API documentation and demonlist guidelines. It instead aims to be a framework that can be used as a stepping stone for creating custom pointercrate-like websites. The reason the home page and similar are not open source is that we have experienced people not customizing these parts when hosting their own lists, resulting in these websites displaying pointercrate branding despite not being associated with pointercrate. As a compromise, this repository instead contains code for an example binary that shows how to use the various library components in this repository to create a demonlist website. See the [getting started section](#getting-started) below for more information.
+This repository serves as a framework for building custom **Pointercrate-like** websites. It is open source for developers who want to create their own demonlist platforms while avoiding the use of **Pointercrate's branding**. The home page and other branding elements are not open-sourced because of misuse by individuals who have hosted their own lists with Pointercrate branding, despite not being associated with the platform.
 
-Note that exclusion of pointercrate-specific code from this repository is still a work-in-progress. For example, a lot of SEO related metadata included in the pages served for the demonlist still hardcodes the pointercrate.com URL. If you end up using this repository as a base for your own demonlist, we ask you to please update these.
+However, this repository includes an **example binary** that demonstrates how to use the various components to create a demonlist website. For more information, see the [Getting Started section](#getting-started) below.
+
+### Exclusion of Pointercrate-specific Code
+Removing Pointercrate-specific code is still a work in progress. For example, SEO-related metadata still references pointercrate.com. If you use this repository as a base, please ensure to update these references.
+
+---
 
 ## Getting Started (Linux)
 
-The goal of this section is to compile and successful run the `pointercrate-example` binary target to set up a locally running demonlist-clone. 
+The goal of this section is to guide you in compiling and running the `pointercrate-example` binary target to set up a locally running **demonlist clone**.
 
-We assume that you have a rust toolchain set up. If not, install the latest stable one using [`rustup`](https://rustup.rs):
+We assume you have the **Rust toolchain** set up. If not, install the latest stable version via [`rustup`](https://rustup.rs/):
 
 ```bash
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
@@ -18,46 +24,54 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 ### Database Setup
 
-Pointercrate uses [`postgresql`](https://www.postgresql.org/) as its database. This guide assumes that you have a local postgres server running, and created both a role (user) and database for use with pointercrate. For simplicity, name both of these `pointercrate` (e.g. `psql -U pointercrate pointercrate` should drop you into a database prompt).
+Pointercrate uses **PostgreSQL** as its database. This guide assumes you have a local PostgreSQL server running and a `pointercrate` user and database created for use.
 
-To connect to the postgres database, pointercrate uses [`sqlx`](https://github.com/launchbadge/sqlx). This means that even to just compile pointercrate, a database with pointercrate's database schema needs to be available (as sqlx will validate SQL queries both syntactically and semantically at compile-time by sending them to a database server for validation). For this, the `DATABASE_URL` environment variable needs to be set to a [libpq connection string](https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING), e.g. 
+To connect to the PostgreSQL database, Pointercrate uses [`sqlx`](https://github.com/launchbadge/sqlx). To compile the project, you need to have access to the database with Pointercrate's schema. The connection string is set via the `DATABASE_URL` environment variable, e.g.,
 
 ```bash
-# If you created the pointercrate database and the pointercrate role (without password but with login permissions),
+# If you created the pointercrate database and role (without a password but with login permissions),
 # the connection string will be
 export DATABASE_URL=postgresql://pointercrate@localhost/pointercrate
 ```
 
-To set up a database with all the tables used by pointercrate, this repository contains a set of migrations that can be applied to an empty database (in the [`migrations`](migrations) directory). To apply the migrations, run
+To set up the database with the required tables, apply the migrations using the following commands:
 
 ```bash
-# you might need your distrbutions equivalent of the libssl-dev and gcc packages
+# Install sqlx-cli for migrations
 cargo install sqlx-cli --no-default-features --features native-tls,postgres
+
+# Apply migrations
 cargo sqlx migrate run
 ```
 
 ### Pointercrate Configuration
 
-Pointercrate is configured via environment variables, which it reads from a `.env` file in the working directory. Additionally, it expects a secret for signing access tokens to be available in a `.secret` file. An example `.env` can be found under `pointercrate-example`. Copy this to the repository root and create the a dummy `.secret` file (for debug purposes only!) via
+Pointercrate is configured via environment variables, typically stored in a `.env` file in the working directory. It also requires a secret key for signing access tokens, which is stored in a `.secret` file.
 
-```bash
-cp pointercrate-example/.env.sample .env
-echo "insecure-do-not-use-in-prod" > .secret
-```
+1. Copy the sample `.env` file from `pointercrate-example`:
+   ```bash
+   cp pointercrate-example/.env.sample .env
+   ```
 
-Then, open `.env` and fill out all the fields that do not have default values (e.g. `DATABASE_URL`).
+2. Create a `.secret` file with the following content (for debug purposes only):
+   ```bash
+   echo "insecure-do-not-use-in-prod" > .secret
+   ```
+
+3. Open `.env` and fill out the fields that do not have default values (e.g., `DATABASE_URL`).
 
 ### Running `pointercrate-example`
 
-At this point, you should be able to run `pointercrate-example` via
+At this point, you should be able to run the `pointercrate-example` binary via:
 
 ```bash
 cargo run -p pointercrate-example
 ```
 
-If everything is set up correctly, you should see `rocket`'s development server start up with output as follows:
+If everything is set up correctly, you should see Rocket's development server start up with the following output:
 
 <details>
+  <summary>Click to view output</summary>
 
 ```
     Finished dev [unoptimized + debuginfo] target(s) in 0.16s
@@ -154,36 +168,44 @@ If everything is set up correctly, you should see `rocket`'s development server 
 
 </details>
 
-The last line will tell you the URL for accessing your local pointercrate instance (in this case, `127.0.0.1:1971`, since my `ROCKET_PORT` environment variable was set to `1971`)!
+The last line indicates the URL for accessing your local Pointercrate instance (e.g., `127.0.0.1:1971`).
+
+---
 
 ### Next Steps
 
-If you want to use pointercrate as a framework for setting up your own demonlist-like website, check out the actual sample code contained in [`pointercrate-example/src/main.rs`](pointercrate-example/src/main.rs). As a first step, you will probably want to replace all the placeholder strings (such as replacing `"<your website>"` with your domain). You probably also want to the "Hello World" home page with a proper home page of your own, and familiarize yourself with the demonlist administration interface in the "User Area". For the latter, you will need to create an account (via the usual registration routine), and then grant yourself (list) administrator permissions via the postgres shell:
+If you're using **Pointercrate** as a framework for your own demonlist website, check out the sample code in [`pointercrate-example/src/main.rs`](pointercrate-example/src/main.rs). Start by replacing placeholder strings (such as `<your website>` with your domain), update the "Hello World" home page, and customize the **User Area**.
 
-```
+To access the demonlist administration interface, create an account and grant yourself administrator permissions via the PostgreSQL shell:
+
+```bash
 $ psql -U pointercrate pointercrate
 psql (16.1)
 Type "help" for help.
 
-pointercrate=# -- assuming the user you just created was assigned member_id 1:
+pointercrate=# -- assuming the user has member_id 1:
 pointercrate=# UPDATE members SET permissions = '0100000000001000'::BIT(16) WHERE member_id = 1;  
 ```
 
-After reloading the user area, you should be able to see all administration tabs (both for website management and demonlist management).
+After reloading the user area, you'll have access to all the administrative tabs for website and demonlist management.
+
+---
 
 ## Running Integration Tests
 
-Pointercrate's test suite can be executed via `cargo test` in the repository root. As running the example binary, it requires access to a database with the pointercrate scheme loaded via the `DATABASE_URL` environment variable. You should use a separate database for tests (say, `pointercrate_test`), as during setup and tear-down of each individual test, this database is dropped and recreated from scratch. 
+Run the test suite with `cargo test` in the repository root. For running the example binary, a database with the Pointercrate schema must be available via the `DATABASE_URL` environment variable. It is recommended to use a separate database for tests, such as `pointercrate_test`, as this database is dropped and recreated for each test.
 
-Integration tests are also ran as part of the CI on each pull request.
+Integration tests are also run as part of the CI process on each pull request.
 
-## Special thanks
+---
 
-The following people have helped with development of pointercrate, either through code contributions or other things:
+## Special Thanks
 
-- [cos8o](https://github.com/cos8o): Reverse engineered parts of the Geometry Dash source that allows pointercrate to display accurate object counts and level lengths
-- [zmx](https://github.com/kyurime) and [mgostIH](https://github.com/mgostIH) and everyone else over in my discord server  
-- [Nimbus](https://github.com/NimbusGD): Development of various discord bots integrating with the pointercrate API
-- Aquatias, Deltablu and Moosh: My trusty admins that click checkboxes for me (love you guys)
-- rSteel, zMarc, Stiluetto and Zipi: My beloved staff
-- and of course the developers of all the dependencies pointercrate uses
+The following people have contributed to the development of **Pointercrate**:
+
+- cos8o: Reverse engineered parts of Geometry Dash's source to display accurate object counts and level lengths.
+- zmx, [mgostIH](https://github.com/mgostIH), and others in the Discord server.
+- [Nimbus](https://github.com/NimbusGD): Developed various Discord bots integrating with the Pointercrate API.
+- Aquatias, Deltablu, and Moosh: Trustworthy admins who help maintain the system.
+- rSteel, zMarc, Stiluetto, and Zipi: Beloved staff members.
+- And, of course, the developers of all the dependencies used by **Pointercrate**.
